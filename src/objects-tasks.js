@@ -17,8 +17,9 @@
  *    shallowCopy({a: 2, b: { a: [1, 2, 3]}}) => {a: 2, b: { a: [1, 2, 3]}}
  *    shallowCopy({}) => {}
  */
-function shallowCopy(/* obj */) {
-  throw new Error('Not implemented');
+function shallowCopy(obj) {
+  const resObj = {};
+  return Object.assign(resObj, obj);
 }
 
 /**
@@ -32,8 +33,17 @@ function shallowCopy(/* obj */) {
  *    mergeObjects([{a: 1, b: 2}, {b: 3, c: 5}]) => {a: 1, b: 5, c: 5}
  *    mergeObjects([]) => {}
  */
-function mergeObjects(/* objects */) {
-  throw new Error('Not implemented');
+function mergeObjects(objects) {
+  return Object.fromEntries(
+    Object.entries(
+      objects.reduce((acc, obj) => {
+        Object.entries(obj).forEach(([key, value]) => {
+          acc[key] = (acc[key] || 0) + value;
+        });
+        return acc;
+      }, {})
+    )
+  );
 }
 
 /**
@@ -49,8 +59,10 @@ function mergeObjects(/* objects */) {
  *    removeProperties({name: 'John', age: 30, city: 'New York'}, ['age']) => {name: 'John', city: 'New York'}
  *
  */
-function removeProperties(/* obj, keys */) {
-  throw new Error('Not implemented');
+function removeProperties(obj, keys) {
+  const copy = { ...obj };
+  keys.forEach((key) => delete copy[key]);
+  return copy;
 }
 
 /**
@@ -65,8 +77,11 @@ function removeProperties(/* obj, keys */) {
  *    compareObjects({a: 1, b: 2}, {a: 1, b: 2}) => true
  *    compareObjects({a: 1, b: 2}, {a: 1, b: 3}) => false
  */
-function compareObjects(/* obj1, obj2 */) {
-  throw new Error('Not implemented');
+function compareObjects(obj1, obj2) {
+  return (
+    Object.keys(obj1).length === Object.keys(obj2).length &&
+    Object.keys(obj1).every((key) => obj1[key] === obj2[key])
+  );
 }
 
 /**
@@ -80,8 +95,8 @@ function compareObjects(/* obj1, obj2 */) {
  *    isEmptyObject({}) => true
  *    isEmptyObject({a: 1}) => false
  */
-function isEmptyObject(/* obj */) {
-  throw new Error('Not implemented');
+function isEmptyObject(obj) {
+  return Object.keys(obj).length === 0;
 }
 
 /**
@@ -100,8 +115,8 @@ function isEmptyObject(/* obj */) {
  *    immutableObj.newProp = 'new';
  *    console.log(immutableObj) => {a: 1, b: 2}
  */
-function makeImmutable(/* obj */) {
-  throw new Error('Not implemented');
+function makeImmutable(obj) {
+  return Object.freeze(obj);
 }
 
 /**
@@ -114,8 +129,12 @@ function makeImmutable(/* obj */) {
  *    makeWord({ a: [0, 1], b: [2, 3], c: [4, 5] }) => 'aabbcc'
  *    makeWord({ H:[0], e: [1], l: [2, 3, 8], o: [4, 6], W:[5], r:[7], d:[9]}) => 'HelloWorld'
  */
-function makeWord(/* lettersObject */) {
-  throw new Error('Not implemented');
+function makeWord(lettersObject) {
+  return Object.entries(lettersObject)
+    .flatMap(([char, positions]) => positions.map((pos) => [pos, char]))
+    .sort(([a], [b]) => a - b)
+    .map(([, char]) => char)
+    .join('');
 }
 
 /**
@@ -132,8 +151,35 @@ function makeWord(/* lettersObject */) {
  *    sellTickets([25, 25, 50]) => true
  *    sellTickets([25, 100]) => false (The seller does not have enough money to give change.)
  */
-function sellTickets(/* queue */) {
-  throw new Error('Not implemented');
+function sellTickets(queue) {
+  const cash = { 25: 0, 50: 0, 100: 0 };
+
+  return queue.every((bill) => {
+    cash[bill] = (cash[bill] || 0) + 1;
+
+    if (bill === 50) {
+      if (cash[25] > 0) {
+        cash[25] -= 1;
+        return true;
+      }
+      return false;
+    }
+
+    if (bill === 100) {
+      if (cash[50] > 0 && cash[25] > 0) {
+        cash[50] -= 1;
+        cash[25] -= 1;
+        return true;
+      }
+      if (cash[25] >= 3) {
+        cash[25] -= 3;
+        return true;
+      }
+      return false;
+    }
+
+    return true;
+  });
 }
 
 /**
@@ -149,8 +195,12 @@ function sellTickets(/* queue */) {
  *    console.log(r.height);      // => 20
  *    console.log(r.getArea());   // => 200
  */
-function Rectangle(/* width, height */) {
-  throw new Error('Not implemented');
+function Rectangle(width, height) {
+  this.width = width;
+  this.height = height;
+  this.getArea = () => {
+    return this.width * this.height;
+  };
 }
 
 /**
@@ -163,8 +213,8 @@ function Rectangle(/* width, height */) {
  *    [1,2,3]   =>  '[1,2,3]'
  *    { height: 10, width: 20 } => '{"height":10,"width":20}'
  */
-function getJSON(/* obj */) {
-  throw new Error('Not implemented');
+function getJSON(obj) {
+  return JSON.stringify(obj);
 }
 
 /**
@@ -178,8 +228,8 @@ function getJSON(/* obj */) {
  *    const r = fromJSON(Circle.prototype, '{"radius":10}');
  *
  */
-function fromJSON(/* proto, json */) {
-  throw new Error('Not implemented');
+function fromJSON(proto, json) {
+  return Object.assign(Object.create(proto), JSON.parse(json));
 }
 
 /**
@@ -208,8 +258,10 @@ function fromJSON(/* proto, json */) {
  *      { country: 'Russia',  city: 'Saint Petersburg' }
  *    ]
  */
-function sortCitiesArray(/* arr */) {
-  throw new Error('Not implemented');
+function sortCitiesArray(arr) {
+  return arr.sort(
+    (a, b) => a.country.localeCompare(b.country) || a.city.localeCompare(b.city)
+  );
 }
 
 /**
@@ -242,8 +294,16 @@ function sortCitiesArray(/* arr */) {
  *    "Poland" => ["Lodz"]
  *   }
  */
-function group(/* array, keySelector, valueSelector */) {
-  throw new Error('Not implemented');
+function group(array, keySelector, valueSelector) {
+  return array.reduce((map, item) => {
+    const key = keySelector(item);
+    const value = valueSelector(item);
+    if (!map.has(key)) {
+      map.set(key, []);
+    }
+    map.get(key).push(value);
+    return map;
+  }, new Map());
 }
 
 /**
@@ -300,33 +360,132 @@ function group(/* array, keySelector, valueSelector */) {
  *  For more examples see unit tests.
  */
 
+const UNIQUE_SELECTORS = ['element', 'id', 'pseudo-element'];
+
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  result: '',
+  lastElementOrder: 0,
+  usedSelectors: [],
+
+  /**
+   * Adds an element selector to the result.
+   * @param {string} value The element name.
+   * @returns {Object} A new instance of the builder with the added element.
+   */
+  element(value) {
+    return this.createSelector(value, 1, 'element');
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  /**
+   * Adds an ID selector to the result.
+   * @param {string} value The ID name.
+   * @returns {Object} A new instance of the builder with the added ID.
+   */
+  id(value) {
+    return this.createSelector(`#${value}`, 2, 'id');
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  /**
+   * Adds a class selector to the result.
+   * @param {string} value The class name.
+   * @returns {Object} A new instance of the builder with the added class.
+   */
+  class(value) {
+    return this.createSelector(`.${value}`, 3, 'class');
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  /**
+   * Adds an attribute selector to the result.
+   * @param {string} value The attribute name.
+   * @returns {Object} A new instance of the builder with the added attribute.
+   */
+  attr(value) {
+    return this.createSelector(`[${value}]`, 4, 'attr');
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  /**
+   * Adds a pseudo-class selector to the result.
+   * @param {string} value The pseudo-class name.
+   * @returns {Object} A new instance of the builder with the added pseudo-class.
+   */
+  pseudoClass(value) {
+    return this.createSelector(`:${value}`, 5, 'pseudo-class');
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  /**
+   * Adds a pseudo-element selector to the result.
+   * @param {string} value The pseudo-element name.
+   * @returns {Object} A new instance of the builder with the added pseudo-element.
+   */
+  pseudoElement(value) {
+    return this.createSelector(`::${value}`, 6, 'pseudo-element');
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  /**
+   * Combines two selectors into one using a combinator.
+   * @param {Object} selector1 The first selector.
+   * @param {string} combinator The combinator (e.g., '>', ' ').
+   * @param {Object} selector2 The second selector.
+   * @returns {Object} A new instance of the builder with the combined selector.
+   */
+  combine(selector1, combinator, selector2) {
+    const resSelector = `${selector1.result} ${combinator} ${selector2.result}`;
+    const obj = Object.create(this, { result: { value: resSelector } });
+    return obj;
+  },
+
+  /**
+   * Validates if the selector type has been used already.
+   * Element, ID, and pseudo-element should only appear once in a selector.
+   * @param {string} selectorType The type of the selector being added (e.g., 'element', 'id', 'pseudo-element').
+   * @throws {Error} Throws an error if the selector type has been used already.
+   */
+  validateSelector(selectorType) {
+    if (
+      this.usedSelectors.includes(selectorType) &&
+      UNIQUE_SELECTORS.includes(selectorType)
+    )
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+  },
+
+  /**
+   * Validates the order of the selector parts.
+   * The parts must follow this order: element, id, class, attribute, pseudo-class, pseudo-element.
+   * @param {number} currentOrder The order in which this part is added.
+   * @throws {Error} Throws an error if the parts are out of order.
+   */
+  validateOrder(currentOrder) {
+    if (currentOrder < this.lastElementOrder)
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+  },
+
+  /**
+   * Creates a new selector part by adding a value and validating the order and uniqueness.
+   * @param {string} value The value to add (e.g., a class or element).
+   * @param {number} currentOrder The order in which this part is added.
+   * @param {string} selectorType The type of selector being added (e.g., 'element', 'id', 'pseudo-element').
+   * @returns {Object} A new instance of the builder with the updated selector.
+   */
+  createSelector(value, currentOrder, selectorType) {
+    this.validateSelector(selectorType);
+    this.validateOrder(currentOrder);
+
+    const newCssSelectorBuilder = Object.create(this);
+    newCssSelectorBuilder.result = this.result + value;
+    newCssSelectorBuilder.lastElementOrder = currentOrder;
+    newCssSelectorBuilder.usedSelectors = [
+      ...newCssSelectorBuilder.usedSelectors,
+      selectorType,
+    ];
+    return newCssSelectorBuilder;
+  },
+
+  stringify() {
+    return this.result;
   },
 };
 
